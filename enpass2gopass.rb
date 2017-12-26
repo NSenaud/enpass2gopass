@@ -2,6 +2,7 @@
 
 require 'csv'
 require 'optparse'
+require 'open3'
 
 optparse = OptionParser.new do |opts|
   opts.banner = "Usage: #{$0} [options] filename"
@@ -26,20 +27,25 @@ filename = ARGV.join(" ")
 puts "Reading '#{filename}'..."
 
 class Entry
-  def initialize website, username, password
-    @website, @username, @password = website, username, password
+  def initialize website, username, password, email
+    @website, @username, @password, @email = website, username, password, email
   end
 
   def name
     s = ""
-    s << @grouping + "/" unless @grouping.empty?
-    s << @name unless @name == nil
+    s << @website + "/" unless @website.empty?
+    s << ( @username ? @username : @email )
     s.gsub(/ /, "_").gsub(/'/, "")
+  end
+
+  def password
+    @password
   end
 
   def to_s
     s = ""
     s << "username: #{@username}\n"
+    s << "email: #{@email}\n"
     s << "password: #{@password}\n"
     s << "url: #{@website}\n"
     return s
@@ -47,13 +53,34 @@ class Entry
 end
 
 entries = []
-# skipped_entries = []
+skipped_entries = []
 
 CSV.foreach(filename) do |row|
   website = row[0]
-  username = row.each_cons(2) { |item, next_item| break next_item if item == 'username' }
-  password = row.each_cons(2) { |item, next_item| break next_item if item == 'password' }
-  entries << Entry.new(website, username, password)
+  username = row.each_cons(2) { |item, next_item| break next_item if item == 'username' or item == 'Username' }
+  password = row.each_cons(2) { |item, next_item| break next_item if item == 'password' or item == 'Password' }
+  email = row.each_cons(2) { |item, next_item| break next_item if item == 'email' or item == 'Email' }
+
+  if email != nil or username != nil and password != nil
+    entries << Entry.new(website, username, password, email)
+  else
+    skipped_entries << Entry.new(website, username, password, email)
+  end
 end
 
-puts entries
+for entry in entries do
+  cmd = ""
+  cmd << "/usr/bin/gopass insert "
+  cmd << entry.name
+  puts cmd
+
+  Open3.popen3(cmd) do |i, o, e, t|
+    i.write entry.password
+    i.close
+    puts o.read
+  end
+end
+
+puts "\n---\n"
+puts "Skipped entries:"
+puts skipped_entries
