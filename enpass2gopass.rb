@@ -5,14 +5,8 @@ require 'optparse'
 require 'open3'
 
 optparse = OptionParser.new do |opts|
-  opts.banner = "Usage: #{$0} [options] filename"
-
-  FORCE = false
-  opts.on("-f", "--force", "Overwrite existing records") { FORCE = true }
-  DEFAULT_GROUP = ""
-  opts.on("-d", "--default GROUP", "Place uncategorised records into GROUP") { |group| DEFAULT_GROUP = group }
+  opts.banner = "Usage: enpass2gopass filename"
   opts.on("-h", "--help", "Display this screen") { puts opts; exit }
-
   opts.parse!
 end
 
