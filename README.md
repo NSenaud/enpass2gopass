@@ -26,4 +26,12 @@ Warnings
 * The script does not import OTP/TOTP/HOTP
 
 
+Credits
+-------
+
+Thanks to [Alex Sayers](mailto://alex.sayers@gmail.com), author of
+[lastpass2pass][lastpass2pass], whom I took the basic file structure.
+
+
 [gopass]: https://github.com/justwatchcom/gopass
+[lastpass2pass]: https://git.zx2c4.com/password-store/tree/contrib/importers/lastpass2pass.rb
